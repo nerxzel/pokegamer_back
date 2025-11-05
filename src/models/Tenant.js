@@ -13,14 +13,12 @@ const tenantSchema = new mongoose.Schema({
   slug: {
     type: String,
     required: [true, 'El slug es requerido'],
-    unique: true,
     lowercase: true,
     trim: true
   },
   email: {
     type: String,
     required: [true, 'El email es requerido'],
-    unique: true,
     lowercase: true,
     trim: true,
     match: [/^\S+@\S+\.\S+$/, 'Email inválido']
@@ -53,8 +51,8 @@ const tenantSchema = new mongoose.Schema({
 });
 
 // Índices para optimizar consultas
-tenantSchema.index({ slug: 1 });
-tenantSchema.index({ email: 1 });
+tenantSchema.index({ slug: 1 }, { unique: true });
+tenantSchema.index({ email: 1 }, { unique: true });
 
 module.exports = mongoose.model('Tenant', tenantSchema);
 
