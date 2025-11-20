@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
+  getCategories,
   getProducts,
   getProductById,
   createProduct,
@@ -178,6 +179,9 @@ router.get('/', extractTenant, getProducts);
  *       404:
  *         description: Producto no encontrado
  */
+
+router.get('/categories', extractTenant, getCategories);
+
 router.get('/:id', extractTenant, getProductById);
 
 router.post('/', 

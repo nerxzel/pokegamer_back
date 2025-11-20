@@ -53,9 +53,10 @@ git push origin main
 Asegurarse de tener configuradas:
 
 ```env
-MONGODB_URI=mongodb+srv://mongodb_user:8KGrkanPKw6eP7kg@cluster0.p5abetu.mongodb.net/ecommerce-multitenant?retryWrites=true&w=majority&appName=Cluster0
+MONGODB_URI=
+appName=Cluster0
 
-JWT_SECRET=c38d31ea083d514fc8137c4f8ece57a93d506db968064eb7b6d32e32625e2d1310b1314f5e1e4a0e6eaaae13bde9d44f7c4303e336b163e3036ff9baf033b716
+JWT_SECRET=
 
 NODE_ENV=production
 
