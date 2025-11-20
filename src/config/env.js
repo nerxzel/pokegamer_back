@@ -18,4 +18,3 @@ module.exports = {
   // CORS
   CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
 };
-
