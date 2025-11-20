@@ -41,12 +41,12 @@ const userSchema = new mongoose.Schema({
 
 }, {timestamps: true});
 
-// Índice compuesto: email debe ser único por tenant
+// Esto es para especificar que el email es único por tenant, globalmente se puede repetir
 userSchema.index({ tenantId: 1, email: 1 }, { unique: true });
 
-// Middleware: Hashear password antes de guardar
+// Hashear password
 userSchema.pre('save', async function(next) {
-  // Solo hashear si el password fue modificado
+
   if (!this.isModified('password')) {
     return next();
   }
@@ -66,4 +66,3 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 };
 
 module.exports = mongoose.model('User', userSchema);
-

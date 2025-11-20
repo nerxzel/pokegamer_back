@@ -7,6 +7,7 @@ const {
   isValidBase64
 } = require('../utils/imageHandler');
 
+
 /**
  * Listar productos del tenant
  * GET /api/products
@@ -104,12 +105,12 @@ const getProductById = async (req, res, next) => {
 const createProduct = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
-    const { name, description, price, stock, imagen } = req.body;
+    const { name, description, category, price, stock, imagen } = req.body;
 
     // Validar campos requeridos
-    if (!name || price === undefined || stock === undefined) {
+    if (!name || !category || price === undefined || stock === undefined) {
       return res.status(400).json({
-        message: 'Faltan campos requeridos: name, price, stock',
+        message: 'Faltan campos requeridos: name, category, price, stock',
         statusCode: 400
       });
     }
@@ -140,6 +141,7 @@ const createProduct = async (req, res, next) => {
     const product = await Product.create({
       tenantId,
       name,
+      category,
       description,
       price,
       stock,
@@ -172,7 +174,7 @@ const updateProduct = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
     const { id } = req.params;
-    const { name, description, price, stock, isActive, imagen } = req.body;
+    const { name, description, category, price, stock, isActive, imagen } = req.body;
 
     const product = await Product.findOne({ _id: id, tenantId });
 
@@ -186,6 +188,7 @@ const updateProduct = async (req, res, next) => {
     // Actualizar campos
     if (name !== undefined) product.name = name;
     if (description !== undefined) product.description = description;
+    if (category !== undefined) product.category = category;
     if (price !== undefined) product.price = price;
     if (stock !== undefined) product.stock = stock;
     if (isActive !== undefined) product.isActive = isActive;
@@ -268,10 +271,26 @@ const deleteProduct = async (req, res, next) => {
   }
 };
 
+const getCategories = async (req, res, next) => {
+  try {
+    const tenantId = req.tenantId;
+    const categories = await Product.distinct('category', {tenantId});
+
+    res.status(200).json({
+      message: 'Categorías obtenidas exitosamente',
+      statusCode: 200,
+      data: categories})
+  } catch (error) {
+    next(error)
+  }
+};
+
 module.exports = {
+  getCategories,
   getProducts,
   getProductById,
   createProduct,
   updateProduct,
   deleteProduct
 };
+

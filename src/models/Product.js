@@ -5,31 +5,44 @@ const mongoose = require('mongoose');
  * Los productos pertenecen a un tenant específico
  */
 const productSchema = new mongoose.Schema({
+
   tenantId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Tenant',
-    required: [true, 'El tenantId es requerido']
+    required: [true, 'El tenantId es obligatorio']
   },
+
   name: {
     type: String,
-    required: [true, 'El nombre del producto es requerido'],
+    required: [true, 'El nombre del producto es obligatorio'],
     trim: true
   },
+
   description: {
     type: String,
     trim: true
   },
+
+  category: {
+    type: String,
+    required: [true, 'La categoría del producto es obligatoria'],
+    trim: true,
+    lowercase: true
+  },
+
   price: {
     type: Number,
-    required: [true, 'El precio es requerido'],
+    required: [true, 'El precio es obligatorio'],
     min: [0, 'El precio no puede ser negativo']
   },
+
   stock: {
     type: Number,
     required: [true, 'El stock es requerido'],
     min: [0, 'El stock no puede ser negativo'],
     default: 0
   },
+
   imagen: {
     type: String,
     trim: true,
@@ -43,16 +56,14 @@ const productSchema = new mongoose.Schema({
       message: 'El formato de la imagen debe ser base64 válido'
     }
   },
+
   isActive: {
     type: Boolean,
     default: true
   }
-}, {
-  timestamps: true
-});
+}, {timestamps: true});
 
 // Índice compuesto para facilitar búsquedas por tenant
 productSchema.index({ tenantId: 1, name: 1 });
 
 module.exports = mongoose.model('Product', productSchema);
-
