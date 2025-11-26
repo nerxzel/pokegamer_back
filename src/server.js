@@ -36,22 +36,23 @@ app.use(cors({
 }));
 
 // Logger HTTP con Morgan
-if (config.NODE_ENV === 'development') {
-  app.use(morgan('dev')); // Formato colorido para desarrollo
-} else {
-  app.use(morgan('combined')); // Formato Apache para producción
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
+  });
 }
 
 // Rate limiting - prevenir ataques de fuerza bruta
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // límite de 100 requests por windowMs
+  max: 500, // límite de 100 requests por windowMs
   message: 'Demasiadas peticiones desde esta IP, por favor intenta más tarde.'
 });
 app.use('/api/', limiter);
 
 // Body parser
-app.use(express.json({ limit: '10mb' })); 
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // =====================
