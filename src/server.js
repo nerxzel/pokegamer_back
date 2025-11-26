@@ -29,6 +29,9 @@ connectDB();
 // Seguridad con Helmet
 app.use(helmet());
 
+// Trust Proxy para Vercel/Proxies
+app.set('trust proxy', 1);
+
 // CORS
 app.use(cors({
   origin: config.CORS_ORIGIN,
