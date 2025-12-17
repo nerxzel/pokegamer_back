@@ -1,10 +1,6 @@
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 
-/**
- * Obtener carrito del usuario
- * GET /api/cart
- */
 const getCart = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
@@ -12,7 +8,6 @@ const getCart = async (req, res, next) => {
 
     let cart = await Cart.findOne({ tenantId, userId }).populate('items.productId');
 
-    // Si no existe carrito, crear uno vacío
     if (!cart) {
       cart = await Cart.create({
         tenantId,
@@ -31,17 +26,12 @@ const getCart = async (req, res, next) => {
   }
 };
 
-/**
- * Agregar producto al carrito
- * POST /api/cart/items
- */
 const addToCart = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
     const userId = req.user.userId;
     const { productId, quantity } = req.body;
 
-    // Validar campos requeridos
     if (!productId || !quantity || quantity < 1) {
       return res.status(400).json({
         message: 'Faltan campos requeridos: productId, quantity (mínimo 1)',
@@ -49,7 +39,6 @@ const addToCart = async (req, res, next) => {
       });
     }
 
-    // Verificar que el producto existe y pertenece al tenant
     const product = await Product.findOne({ _id: productId, tenantId, isActive: true });
 
     if (!product) {
@@ -59,7 +48,6 @@ const addToCart = async (req, res, next) => {
       });
     }
 
-    // Verificar stock disponible
     if (product.stock < quantity) {
       return res.status(400).json({
         message: 'Stock insuficiente',
@@ -67,7 +55,6 @@ const addToCart = async (req, res, next) => {
       });
     }
 
-    // Buscar o crear carrito
     let cart = await Cart.findOne({ tenantId, userId });
 
     if (!cart) {
@@ -78,16 +65,13 @@ const addToCart = async (req, res, next) => {
       });
     }
 
-    // Buscar si el producto ya está en el carrito
     const existingItemIndex = cart.items.findIndex(
       item => item.productId.toString() === productId.toString()
     );
 
     if (existingItemIndex >= 0) {
-      // Actualizar cantidad
       cart.items[existingItemIndex].quantity += quantity;
     } else {
-      // Agregar nuevo item
       cart.items.push({ productId, quantity });
     }
 
@@ -104,10 +88,6 @@ const addToCart = async (req, res, next) => {
   }
 };
 
-/**
- * Actualizar cantidad de producto en carrito
- * PUT /api/cart/items/:productId
- */
 const updateCartItem = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
@@ -115,7 +95,6 @@ const updateCartItem = async (req, res, next) => {
     const { productId } = req.params;
     const { quantity } = req.body;
 
-    // Validar quantity
     if (quantity === undefined || quantity < 1) {
       return res.status(400).json({
         message: 'La cantidad debe ser al menos 1',
@@ -132,7 +111,6 @@ const updateCartItem = async (req, res, next) => {
       });
     }
 
-    // Buscar el item en el carrito
     const itemIndex = cart.items.findIndex(
       item => item.productId.toString() === productId.toString()
     );
@@ -144,7 +122,6 @@ const updateCartItem = async (req, res, next) => {
       });
     }
 
-    // Verificar stock
     const product = await Product.findOne({ _id: productId, tenantId });
     if (product && product.stock < quantity) {
       return res.status(400).json({
@@ -153,7 +130,6 @@ const updateCartItem = async (req, res, next) => {
       });
     }
 
-    // Actualizar cantidad
     cart.items[itemIndex].quantity = quantity;
 
     await cart.save();
@@ -169,10 +145,6 @@ const updateCartItem = async (req, res, next) => {
   }
 };
 
-/**
- * Eliminar producto del carrito
- * DELETE /api/cart/items/:productId
- */
 const removeFromCart = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
@@ -188,7 +160,6 @@ const removeFromCart = async (req, res, next) => {
       });
     }
 
-    // Filtrar el item
     cart.items = cart.items.filter(
       item => item.productId.toString() !== productId.toString()
     );
@@ -206,10 +177,6 @@ const removeFromCart = async (req, res, next) => {
   }
 };
 
-/**
- * Vaciar carrito
- * DELETE /api/cart
- */
 const clearCart = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;

@@ -9,7 +9,6 @@ const {
 const { extractTenant } = require('../middlewares/tenantMiddleware');
 const { authenticate, requireRole } = require('../middlewares/authMiddleware');
 
-// Aplicar middlewares a todas las rutas
 router.use(extractTenant);
 router.use(authenticate);
 
