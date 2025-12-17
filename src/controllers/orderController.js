@@ -2,16 +2,11 @@ const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 
-/**
- * Crear orden desde el carrito
- * POST /api/orders
- */
 const createOrder = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
     const userId = req.user.userId;
 
-    // Obtener carrito del usuario
     const cart = await Cart.findOne({ tenantId, userId }).populate('items.productId');
 
     if (!cart || cart.items.length === 0) {
@@ -21,14 +16,12 @@ const createOrder = async (req, res, next) => {
       });
     }
 
-    // Preparar items de la orden con precio actual
     const orderItems = [];
     let total = 0;
 
     for (const cartItem of cart.items) {
       const product = cartItem.productId;
 
-      // Verificar que el producto existe y está activo
       if (!product || !product.isActive) {
         return res.status(400).json({
           message: `Producto ${product?.name || 'desconocido'} no disponible`,
@@ -36,7 +29,6 @@ const createOrder = async (req, res, next) => {
         });
       }
 
-      // Verificar stock
       if (product.stock < cartItem.quantity) {
         return res.status(400).json({
           message: `Stock insuficiente para ${product.name}`,
@@ -44,7 +36,6 @@ const createOrder = async (req, res, next) => {
         });
       }
 
-      // Agregar item con precio actual
       orderItems.push({
         productId: product._id,
         quantity: cartItem.quantity,
@@ -54,7 +45,6 @@ const createOrder = async (req, res, next) => {
       total += product.price * cartItem.quantity;
     }
 
-    // Crear orden
     const order = await Order.create({
       tenantId,
       userId,
@@ -63,7 +53,6 @@ const createOrder = async (req, res, next) => {
       status: 'pending'
     });
 
-    // Reducir stock de productos
     for (const item of orderItems) {
       await Product.findByIdAndUpdate(
         item.productId,
@@ -71,11 +60,9 @@ const createOrder = async (req, res, next) => {
       );
     }
 
-    // Vaciar carrito
     cart.items = [];
     await cart.save();
 
-    // Poblar la orden con datos de productos
     await order.populate('items.productId');
 
     res.status(201).json({
@@ -88,10 +75,6 @@ const createOrder = async (req, res, next) => {
   }
 };
 
-/**
- * Listar órdenes
- * GET /api/orders
- */
 const getOrders = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
@@ -99,10 +82,8 @@ const getOrders = async (req, res, next) => {
     const userRole = req.user.role;
     const { page = 1, limit = 10 } = req.query;
 
-    // Filtro base
     const filter = { tenantId };
 
-    // Si no es admin, solo ver sus propias órdenes
     if (userRole !== 'admin') {
       filter.userId = userId;
     }
@@ -135,10 +116,6 @@ const getOrders = async (req, res, next) => {
   }
 };
 
-/**
- * Obtener orden por ID
- * GET /api/orders/:id
- */
 const getOrderById = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
@@ -148,7 +125,6 @@ const getOrderById = async (req, res, next) => {
 
     const filter = { _id: id, tenantId };
 
-    // Si no es admin, solo puede ver sus propias órdenes
     if (userRole !== 'admin') {
       filter.userId = userId;
     }
@@ -172,17 +148,12 @@ const getOrderById = async (req, res, next) => {
   }
 };
 
-/**
- * Actualizar estado de orden (solo admin)
- * PUT /api/orders/:id/status
- */
 const updateOrderStatus = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
     const { id } = req.params;
     const { status } = req.body;
 
-    // Validar status
     const validStatuses = ['pending', 'paid', 'shipped', 'cancelled'];
     if (!status || !validStatuses.includes(status)) {
       return res.status(400).json({
@@ -200,7 +171,6 @@ const updateOrderStatus = async (req, res, next) => {
       });
     }
 
-    // Si se cancela, devolver stock
     if (status === 'cancelled' && order.status !== 'cancelled') {
       for (const item of order.items) {
         await Product.findByIdAndUpdate(

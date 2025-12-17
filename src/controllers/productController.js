@@ -9,24 +9,17 @@ const {
 } = require('../utils/imageHandler');
 
 
-/**
- * Listar productos del tenant
- * GET /api/products
- */
 const getProducts = async (req, res, next) => {
   try {
-    const tenantId = req.tenantId; // Del middleware extractTenant
+    const tenantId = req.tenantId; 
     const { isActive, page = 1, limit = 20 } = req.query;
 
-    // Filtro base por tenant
     const filter = { tenantId };
 
-    // Filtro opcional por isActive
     if (isActive !== undefined) {
       filter.isActive = isActive === 'true';
     }
 
-    // Paginación
     const skip = (page - 1) * limit;
 
     const products = await Product.find(filter)
@@ -36,7 +29,6 @@ const getProducts = async (req, res, next) => {
 
     const total = await Product.countDocuments(filter);
 
-    // Decodificar imágenes para respuesta
     const productsWithDecodedImages = products.map(product => {
       const productObj = product.toObject();
       if (productObj.imagen) {
@@ -64,10 +56,6 @@ const getProducts = async (req, res, next) => {
   }
 };
 
-/**
- * Obtener producto por ID
- * GET /api/products/:id
- */
 const getProductById = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
@@ -82,7 +70,6 @@ const getProductById = async (req, res, next) => {
       });
     }
 
-    // Decodificar imagen para respuesta
     const productObj = product.toObject();
     if (productObj.imagen) {
       const mimeType = detectImageMimeType(productObj.imagen);
@@ -99,16 +86,11 @@ const getProductById = async (req, res, next) => {
   }
 };
 
-/**
- * Crear producto (solo admin)
- * POST /api/products
- */
 const createProduct = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
     const { name, description, category, price, stock, imagen } = req.body;
 
-    // Validar campos requeridos
     if (!name || !category || price === undefined || stock === undefined) {
       return res.status(400).json({
         message: 'Faltan campos requeridos: name, category, price, stock',
@@ -116,10 +98,8 @@ const createProduct = async (req, res, next) => {
       });
     }
 
-    // Validar y codificar imagen si se proporciona
     let encodedImage = null;
     if (imagen) {
-      // Validar formato base64
       if (!isValidBase64(imagen)) {
         return res.status(400).json({
           message: 'El formato de la imagen debe ser base64 válido',
@@ -127,7 +107,6 @@ const createProduct = async (req, res, next) => {
         });
       }
 
-      // Validar tamaño (máximo 5MB)
       if (!validateImageSize(imagen, 5)) {
         return res.status(400).json({
           message: 'La imagen es demasiado grande. Tamaño máximo: 5MB',
@@ -135,7 +114,6 @@ const createProduct = async (req, res, next) => {
         });
       }
 
-      // Codificar para almacenamiento (guardar solo base64 puro)
       encodedImage = encodeImageForStorage(imagen);
     }
 
@@ -150,7 +128,6 @@ const createProduct = async (req, res, next) => {
       isActive: true
     });
 
-    // Decodificar imagen para respuesta
     const productObj = product.toObject();
     if (productObj.imagen) {
       const mimeType = detectImageMimeType(imagen);
@@ -167,10 +144,6 @@ const createProduct = async (req, res, next) => {
   }
 };
 
-/**
- * Actualizar producto (solo admin)
- * PUT /api/products/:id
- */
 const updateProduct = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
@@ -186,7 +159,6 @@ const updateProduct = async (req, res, next) => {
       });
     }
 
-    // Actualizar campos
     if (name !== undefined) product.name = name;
     if (description !== undefined) product.description = description;
     if (category !== undefined) product.category = category;
@@ -194,13 +166,10 @@ const updateProduct = async (req, res, next) => {
     if (stock !== undefined) product.stock = stock;
     if (isActive !== undefined) product.isActive = isActive;
 
-    // Validar y codificar imagen si se proporciona
     if (imagen !== undefined) {
       if (imagen === null || imagen === '') {
-        // Permitir eliminar la imagen
         product.imagen = null;
       } else {
-        // Validar formato base64
         if (!isValidBase64(imagen)) {
           return res.status(400).json({
             message: 'El formato de la imagen debe ser base64 válido',
@@ -208,7 +177,6 @@ const updateProduct = async (req, res, next) => {
           });
         }
 
-        // Validar tamaño (máximo 5MB)
         if (!validateImageSize(imagen, 5)) {
           return res.status(400).json({
             message: 'La imagen es demasiado grande. Tamaño máximo: 5MB',
@@ -216,14 +184,12 @@ const updateProduct = async (req, res, next) => {
           });
         }
 
-        // Codificar para almacenamiento
         product.imagen = encodeImageForStorage(imagen);
       }
     }
 
     await product.save();
 
-    // Decodificar imagen para respuesta
     const productObj = product.toObject();
     if (productObj.imagen) {
       const mimeType = detectImageMimeType(productObj.imagen);
@@ -240,10 +206,6 @@ const updateProduct = async (req, res, next) => {
   }
 };
 
-/**
- * Eliminar/Desactivar producto (solo admin)
- * DELETE /api/products/:id
- */
 const deleteProduct = async (req, res, next) => {
   try {
     const tenantId = req.tenantId;
@@ -258,7 +220,6 @@ const deleteProduct = async (req, res, next) => {
       });
     }
 
-    // Soft delete - marcar como inactivo
     product.isActive = false;
     await product.save();
 

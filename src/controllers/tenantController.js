@@ -1,15 +1,10 @@
 const Tenant = require('../models/Tenant');
 const User = require('../models/User');
 
-/**
- * Crear nuevo tenant
- * POST /api/tenants
- */
 const createTenant = async (req, res, next) => {
   try {
     const { name, slug, adminName, adminEmail, adminPassword } = req.body;
 
-    // Validar campos requeridos
     if (!name || !slug) {
       return res.status(400).json({
         message: 'Faltan campos requeridos: name, slug',
@@ -17,7 +12,6 @@ const createTenant = async (req, res, next) => {
       });
     }
 
-    // Verificar que el slug no exista
     const existingTenant = await Tenant.findOne({ slug });
     if (existingTenant) {
       return res.status(409).json({
@@ -26,21 +20,19 @@ const createTenant = async (req, res, next) => {
       });
     }
 
-    // Crear tenant
     const tenant = await Tenant.create({
       name,
       slug,
       isActive: true
     });
 
-    // Opcionalmente crear admin inicial si se proporcionan credenciales
     let admin = null;
     if (adminName && adminEmail && adminPassword) {
       admin = await User.create({
         tenantId: tenant._id,
         name: adminName,
         email: adminEmail,
-        password: adminPassword, // Se hashea automáticamente
+        password: adminPassword,
         role: 'admin',
         isActive: true
       });
@@ -60,7 +52,6 @@ const createTenant = async (req, res, next) => {
       }
     };
 
-    // Agregar admin si fue creado
     if (admin) {
       response.data.admin = {
         id: admin._id,

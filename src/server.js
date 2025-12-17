@@ -8,7 +8,6 @@ const connectDB = require('./config/database');
 const errorHandler = require('./middlewares/errorHandler');
 const { swaggerUi, swaggerSpec } = require('./config/swagger');
 
-// Importar rutas
 const authRoutes = require('./routes/authRoutes');
 const tenantRoutes = require('./routes/tenantRoutes');
 const productRoutes = require('./routes/productRoutes');
@@ -16,53 +15,33 @@ const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 
 const app = express();
-
-// =====================
-// Conectar a MongoDB
-// =====================
 connectDB();
 
-// =====================
-// Middlewares Globales
-// =====================
 
-// Seguridad con Helmet
 app.use(helmet());
-
-// Trust Proxy para Vercel/Proxies
 app.set('trust proxy', 1);
 
-// CORS
 app.use(cors({
   origin: config.CORS_ORIGIN,
   credentials: true
 }));
 
-// Logger HTTP con Morgan
 if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Servidor corriendo en el puerto ${PORT}`);
-  });
+  app.use(morgan('dev'));
+  console.log('Modo desarrollo activado: Logs detallados');
 }
 
-// Rate limiting - prevenir ataques de fuerza bruta
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 500, // límite de 100 requests por windowMs
+  windowMs: 15 * 60 * 1000, 
+  max: 500, 
   message: 'Demasiadas peticiones desde esta IP, por favor intenta más tarde.'
 });
 app.use('/api/', limiter);
 
-// Body parser
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// =====================
-// Rutas
-// =====================
-
-// Health check
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -71,11 +50,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// =====================
-// Documentación Swagger
-// =====================
 
-// Configuración especial para Vercel/producción
 const swaggerUiOptions = {
   customCss: '.swagger-ui .topbar { display: none }',
   customSiteTitle: 'E-Commerce API Docs',
@@ -84,24 +59,20 @@ const swaggerUiOptions = {
   }
 };
 
-// Middleware de Swagger UI - Compatible con Vercel
 app.use('/api-docs', swaggerUi.serve);
 app.get('/api-docs', swaggerUi.setup(swaggerSpec, swaggerUiOptions));
 
-// Endpoint para obtener la especificación JSON
 app.get('/api-docs.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpec);
 });
 
-// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 
-// Ruta 404
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
@@ -109,14 +80,9 @@ app.use('*', (req, res) => {
   });
 });
 
-// =====================
-// Manejo de Errores
-// =====================
 app.use(errorHandler);
 
-// =====================
-// Iniciar Servidor
-// =====================
+
 const PORT = config.PORT;
 
 app.listen(PORT, () => {
@@ -131,9 +97,8 @@ app.listen(PORT, () => {
   `);
 });
 
-// Manejo de errores no capturados
 process.on('unhandledRejection', (err) => {
-  console.error('❌ Unhandled Rejection:', err);
+  console.error('Unhandled Rejection:', err);
   process.exit(1);
 });
 

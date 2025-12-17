@@ -1,10 +1,5 @@
 const Joi = require('joi');
 
-/**
- * Validadores de entrada usando Joi
- */
-
-// Validación para registro de usuario
 const registerValidator = Joi.object({
   email: Joi.string().email().required().messages({
     'string.email': 'Email inválido',
@@ -24,7 +19,6 @@ const registerValidator = Joi.object({
   role: Joi.string().valid('admin', 'customer').optional()
 });
 
-// Validación para login
 const loginValidator = Joi.object({
   email: Joi.string().email().required().messages({
     'string.email': 'Email inválido',
@@ -35,7 +29,6 @@ const loginValidator = Joi.object({
   })
 });
 
-// Validación para crear tenant
 const createTenantValidator = Joi.object({
   name: Joi.string().required().messages({
     'any.required': 'El nombre del tenant es requerido'
@@ -50,7 +43,6 @@ const createTenantValidator = Joi.object({
   domain: Joi.string().optional()
 });
 
-// Validación para crear producto
 const createProductValidator = Joi.object({
   name: Joi.string().required().messages({
     'any.required': 'El nombre del producto es requerido'
@@ -87,7 +79,6 @@ const createProductValidator = Joi.object({
   featured: Joi.boolean().optional()
 });
 
-// Validación para añadir item al carrito
 const addToCartValidator = Joi.object({
   productId: Joi.string().required().messages({
     'any.required': 'El ID del producto es requerido'
@@ -98,7 +89,6 @@ const addToCartValidator = Joi.object({
   })
 });
 
-// Validación para crear orden
 const createOrderValidator = Joi.object({
   paymentMethod: Joi.string()
     .valid('credit_card', 'debit_card', 'paypal', 'cash', 'bank_transfer')
@@ -120,10 +110,7 @@ const createOrderValidator = Joi.object({
   notes: Joi.string().optional()
 });
 
-/**
- * Middleware para validar datos
- * @param {Object} schema - Schema de Joi a usar
- */
+
 const validate = (schema) => {
   return (req, res, next) => {
     const { error } = schema.validate(req.body, { abortEarly: false });

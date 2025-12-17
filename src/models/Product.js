@@ -48,8 +48,7 @@ const productSchema = new mongoose.Schema({
     trim: true,
     validate: {
       validator: function(v) {
-        if (!v) return true; // Imagen es opcional
-        // Validar formato base64 (con o sin data URI prefix)
+        if (!v) return true; 
         const base64Regex = /^data:image\/(png|jpeg|jpg|gif|webp);base64,|^[A-Za-z0-9+/]+={0,2}$/;
         return base64Regex.test(v);
       },
@@ -63,7 +62,6 @@ const productSchema = new mongoose.Schema({
   }
 }, {timestamps: true});
 
-// Índice compuesto para facilitar búsquedas por tenant
 productSchema.index({ tenantId: 1, name: 1 });
 
 module.exports = mongoose.model('Product', productSchema);

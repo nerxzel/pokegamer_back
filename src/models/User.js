@@ -41,10 +41,8 @@ const userSchema = new mongoose.Schema({
 
 }, {timestamps: true});
 
-// Esto es para especificar que el email es único por tenant, globalmente se puede repetir
 userSchema.index({ tenantId: 1, email: 1 }, { unique: true });
 
-// Hashear password
 userSchema.pre('save', async function(next) {
 
   if (!this.isModified('password')) {
@@ -60,7 +58,6 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-// Método para comparar contraseñas
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };

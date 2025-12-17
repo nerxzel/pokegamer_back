@@ -33,7 +33,6 @@ const cartSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Índice compuesto para búsquedas por tenant y usuario
 cartSchema.index({ tenantId: 1, userId: 1 });
 
 module.exports = mongoose.model('Cart', cartSchema);
